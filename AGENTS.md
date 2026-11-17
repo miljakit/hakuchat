@@ -7,7 +7,7 @@
 .venv/bin/pip install openai flask python-dotenv
 
 # Set required env var
-export OPEN_ROUTER_UUS="your-openrouter-api-key"
+export OPEN_ROUTER_API_KEY="your-openrouter-api-key"
 
 # Run Flask server
 .venv/bin/python app.py
@@ -48,5 +48,5 @@ hakuchat/
 
 - No pyproject.toml, requirements.txt, or setup.py yet
 - No lint, typecheck, or test tooling configured
-- Requires `OPEN_ROUTER_UUS` environment variable
+- Requires `OPEN_ROUTER_API_KEY` environment variable
 - DuckDuckGo HTML scraping is rate-limited/unreliable; MVP only

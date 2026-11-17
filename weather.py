@@ -21,7 +21,7 @@ weather_tool = {
 
 client = OpenAI(
     base_url="https://openrouter.ai/api/v1",
-    api_key=os.environ["OPEN_ROUTER_UUS"],
+    api_key=os.environ["OPEN_ROUTER_API_KEY"],
 )
 
 response = client.chat.completions.create(

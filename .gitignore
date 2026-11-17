@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.pyc
+
+# Virtuaaliympäristöt
+venv/
+.venv/
+
+# VS Code
+.vscode/
+
+# Ympäristömuuttujat
+.env
+
+# Käyttöjärjestelmä
+.DS_Store

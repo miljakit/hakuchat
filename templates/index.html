@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HakuChat</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>HakuChat</h1>
+        </header>
+        <div id="messages" class="messages"></div>
+        <form id="chat-form" class="chat-form">
+            <input type="text" id="input" placeholder="Kirjoita viesti..." autocomplete="off" required>
+            <button type="submit">Lähetä</button>
+        </form>
+    </div>
+    <script>
+        const messagesEl = document.getElementById('messages');
+        const form = document.getElementById('chat-form');
+        const input = document.getElementById('input');
+        let history = [];
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function makeLinksClickable(text) {
+            return text.replace(
+                /(https?:\/\/[^\s]+)/g,
+                '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>'
+            );
+        }
+
+        function appendMessage(role, content, isSearch = false) {
+            const div = document.createElement('div');
+            div.className = `message ${role} ${isSearch ? 'search' : ''}`;
+            
+            const formatted = makeLinksClickable(escapeHtml(content));
+            div.innerHTML = formatted;
+            messagesEl.appendChild(div);
+            messagesEl.scrollTop = messagesEl.scrollHeight;
+        }
+
+        function showLoading() {
+            const div = document.createElement('div');
+            div.className = 'message assistant loading';
+            div.id = 'loading';
+            div.textContent = '...';
+            messagesEl.appendChild(div);
+            messagesEl.scrollTop = messagesEl.scrollHeight;
+            return div;
+        }
+
+        function removeLoading() {
+            const loading = document.getElementById('loading');
+            if (loading) loading.remove();
+        }
+
+        async function sendMessage(text) {
+            appendMessage('user', text);
+            history.push({ role: 'user', content: text });
+            input.value = '';
+            input.disabled = true;
+            form.querySelector('button').disabled = true;
+
+            const loading = showLoading();
+
+            try {
+                const res = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ messages: history })
+                });
+                const data = await res.json();
+                removeLoading();
+
+                if (data.error) {
+                    appendMessage('system', 'Virhe: ' + data.error);
+                } else if (data.answer) {
+                    appendMessage('assistant', data.answer);
+                    history.push({ role: 'assistant', content: data.answer });
+                }
+            } catch (e) {
+                removeLoading();
+                appendMessage('system', 'Verkkovirhe: ' + e.message);
+            } finally {
+                input.disabled = false;
+                form.querySelector('button').disabled = false;
+                input.focus();
+            }
+        }
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const text = input.value.trim();
+            if (text) sendMessage(text);
+        });
+
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                form.dispatchEvent(new Event('submit'));
+            }
+        });
+
+        input.focus();
+    </script>
+</body>
+</html>
